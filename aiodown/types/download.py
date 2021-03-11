@@ -86,10 +86,10 @@ class Download:
 
                     async with async_files.FileIO(path, "wb") as file:
                         async for chunk in response.aiter_bytes():
-                            if self._status == "stopped":
+                            if self.get_status() == "stopped":
                                 break
-                            if self._status == "paused":
-                                while self._status == "paused":
+                            if self.get_status() == "paused":
+                                while self.get_status() == "paused":
                                     await asyncio.sleep(0.1)
                                     continue
 
@@ -97,7 +97,7 @@ class Download:
 
                             self._bytes_downloaded = response.num_bytes_downloaded
 
-                        if not self._status == "stopped":
+                        if not self.get_status() == "stopped":
                             self._status = "finished"
                             log.info(f"{self._name} finished!")
                         await file.close()
