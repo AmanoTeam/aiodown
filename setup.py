@@ -29,6 +29,7 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
     ],
     description="A fully async file downloader",
+    download_url="https://github.com/AmanoTeam/aiodown/archive/v1.0.0.tar.gz",
     long_description=readme,
     long_description_content_type="text/markdown",
     keywords="python downloader async asyncio httpx",
