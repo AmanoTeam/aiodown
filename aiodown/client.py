@@ -44,7 +44,7 @@ class Client:
             )
 
         id = len(self._downloads.keys())
-        dl = Download(url, path, name, retries)
+        dl = Download(url, path, name, retries, self)
         dl._id = id
         self._downloads[id] = dl
 
@@ -87,6 +87,15 @@ class Client:
 
         for _download in self._downloads.values():
             await _download.stop()
+
+        self._running = False
+
+    def check_is_running(self):
+        for _download in self._downloads.values():
+            if _download.is_finished():
+                continue
+            else:
+                return
 
         self._running = False
 

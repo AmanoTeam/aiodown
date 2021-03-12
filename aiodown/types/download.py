@@ -43,7 +43,10 @@ class Download:
         path: str = None,
         name: str = None,
         retries: int = 3,
+        client: "aiodown.Client" = None,
     ):
+        self._client = client
+
         self._id = random.randint(1, 9999)
         self._url = url
         self._path = path
@@ -112,11 +115,15 @@ class Download:
                             if not self.get_status() == "stopped":
                                 self._status = "finished"
                                 log.info(f"{self._name} finished!")
+                                if not self._client is None:
+                                    self._client.check_is_running()
                             await file.close()
                     await client.aclose()
             except Exception as excep:
                 self._status = "failed"
                 log.info(f"{self._name} failed!")
+                if not self._client is None:
+                    self._client.check_is_running()
                 raise excep.__class__(excep)
 
     async def start(self):
@@ -139,6 +146,8 @@ class Download:
             raise RuntimeError("Download is already stopped")
 
         self._status = "stopped"
+        if not self._client is None:
+            self._client.check_is_running()
 
         log.info(f"{self._name} stopped!")
 
