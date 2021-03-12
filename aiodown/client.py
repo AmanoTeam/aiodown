@@ -42,7 +42,9 @@ class Client:
     async def __aexit__(self, *args):
         return self
 
-    def add(self, url: str, path: str = None, name: str = None, retries: int = 3) -> Download:
+    def add(
+        self, url: str, path: str = None, name: str = None, retries: int = 3
+    ) -> Download:
         if self.is_running():
             raise RuntimeError(
                 "Downloads have already started, cancel them or wait for them to finish"

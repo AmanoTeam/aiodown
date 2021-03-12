@@ -136,10 +136,10 @@ class Download:
         self._thread.start()
 
     async def stop(self):
-        if self.get_status() == "paused":
-            raise RuntimeError("Download is already stopped")
         if self.is_finished():
             raise RuntimeError("Download is already finished")
+        if self.get_status() == "stopped":
+            raise RuntimeError("Download is already stopped")
 
         self._status = "stopped"
 
@@ -148,14 +148,24 @@ class Download:
         sys.exit(0)
 
     async def pause(self):
-        if self.get_status() == "paused":
-            raise RuntimeError("Download is already paused")
         if self.is_finished():
             raise RuntimeError("Download is already finished")
+        if self.get_status() == "paused":
+            raise RuntimeError("Download is already paused")
 
         self._status = "paused"
 
         log.info(f"{self._name} paused!")
+
+    async def resume(self):
+        if self.is_finished():
+            raise RuntimeError("Download is already finished")
+        if not self.get_status() == "paused":
+            raise RuntimeError("Download is already in progress")
+
+        self._status = "downloading"
+
+        log.info(f"{self._name} resumed!")
 
     def get_size_total(
         self, human: bool = False, binary: bool = False, gnu: bool = False
