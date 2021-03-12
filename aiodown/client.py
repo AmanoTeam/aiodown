@@ -40,7 +40,7 @@ class Client:
     ) -> Download:
         if self.is_running():
             raise RuntimeError(
-                "Downloads have already started, cancel them or wait for them to finish"
+                "There are some downloads in progress, cancel them first or wait for them to finish"
             )
 
         id = len(self._downloads.keys())
@@ -50,14 +50,27 @@ class Client:
 
         return dl
 
-    def rem(self, id: int):
-        if id in self._downloads.keys():
-            if self._downloads[id].is_finished():
-                del self._downloads[id]
+    def rem(self, id: Union[bool, int]):
+        if isinstance(id, bool):
+            if id:
+                if self.is_running():
+                    raise RuntimeError(
+                        "There are some downloads in progress, cancel them first or wait for them to finish"
+                    )
+                else:
+                    self._downloads = {}
             else:
-                raise RuntimeError("The download is in progress, cancel it first")
+                raise TypeError(
+                    "You can only use 'client.rem(True)' or 'client.rem(id)' and not 'client.rem(False)'"
+                )
         else:
-            raise KeyError(f"There is no download with id '{id}'")
+            if id in self._downloads.keys():
+                if self._downloads[id].is_finished():
+                    del self._downloads[id]
+                else:
+                    raise RuntimeError("The download is in progress, cancel it first")
+            else:
+                raise KeyError(f"There is no download with id '{id}'")
 
     async def start(self):
         if self.is_running():
