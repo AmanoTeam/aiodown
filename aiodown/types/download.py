@@ -43,13 +43,7 @@ class Download:
         path: str = None,
         name: str = None,
         retries: int = 3,
-        httpx: httpx.AsyncClient = None,
     ):
-        if httpx is None:
-            self._httpx = httpx.AsyncClient()
-        else:
-            self._httpx = httpx
-
         self._id = random.randint(1, 9999)
         self._url = url
         self._path = path
@@ -87,37 +81,39 @@ class Download:
                 raise FileExistsError(f"[Errno 17] File exists: '{path}'")
 
             try:
-                async with self._httpx.stream("GET", self._url) as response:
-                    self._status = "downloading"
-                    try:
-                        self._bytes_total = int(response.headers["Content-Length"])
-                    except KeyError:
-                        self._status = "retrying"
-                        if self._attempts <= self._retries:
-                            self._attempts += 1
-                            return await self._download()
-                        else:
-                            self._status = "failed"
-                        return
-                    self._bytes_downloaded = response.num_bytes_downloaded
+                async with httpx.AsyncClient() as client:
+                    async with client.stream("GET", self._url) as response:
+                        self._status = "downloading"
+                        try:
+                            self._bytes_total = int(response.headers["Content-Length"])
+                        except KeyError:
+                            self._status = "retrying"
+                            if self._attempts <= self._retries:
+                                self._attempts += 1
+                                return await self._download()
+                            else:
+                                self._status = "failed"
+                            return
+                        self._bytes_downloaded = response.num_bytes_downloaded
 
-                    async with async_files.FileIO(path, "wb") as file:
-                        async for chunk in response.aiter_bytes():
-                            if self.get_status() == "stopped":
-                                break
-                            if self.get_status() == "paused":
-                                while self.get_status() == "paused":
-                                    await asyncio.sleep(0.1)
-                                    continue
+                        async with async_files.FileIO(path, "wb") as file:
+                            async for chunk in response.aiter_bytes():
+                                if self.get_status() == "stopped":
+                                    break
+                                if self.get_status() == "paused":
+                                    while self.get_status() == "paused":
+                                        await asyncio.sleep(0.1)
+                                        continue
 
-                            await file.write(chunk)
+                                await file.write(chunk)
 
-                            self._bytes_downloaded = response.num_bytes_downloaded
+                                self._bytes_downloaded = response.num_bytes_downloaded
 
-                        if not self.get_status() == "stopped":
-                            self._status = "finished"
-                            log.info(f"{self._name} finished!")
-                        await file.close()
+                            if not self.get_status() == "stopped":
+                                self._status = "finished"
+                                log.info(f"{self._name} finished!")
+                            await file.close()
+                    await client.aclose()
             except Exception as excep:
                 self._status = "failed"
                 log.info(f"{self._name} failed!")

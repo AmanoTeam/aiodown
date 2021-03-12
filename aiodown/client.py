@@ -20,25 +20,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import httpx
-import logging
-
 from aiodown.types import Download
 from typing import List
 
 
 class Client:
     def __init__(self):
-        self._httpx = None
         self._downloads = {}
         self._running = False
 
     async def __aenter__(self):
-        self._httpx = httpx.AsyncClient()
         return self
 
     async def __aexit__(self, *args):
-        return self
+        return None
 
     def add(
         self, url: str, path: str = None, name: str = None, retries: int = 3
@@ -49,7 +44,7 @@ class Client:
             )
 
         id = len(self._downloads.keys())
-        dl = Download(url, path, name, retries, self._httpx)
+        dl = Download(url, path, name, retries)
         dl._id = id
         self._downloads[id] = dl
 
@@ -81,13 +76,6 @@ class Client:
             await _download.stop()
 
         self._running = False
-
-    async def close(self):
-        try:
-            await self._httpx.aclose()
-        except RuntimeError:
-            pass
-        self._httpx = None
 
     def is_running(self) -> bool:
         return self._running
