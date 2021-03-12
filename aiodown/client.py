@@ -101,4 +101,4 @@ class Client:
         return self._running
 
     def get_downloads(self) -> List[Download]:
-        return self._downloads
+        return self._downloads.values()
