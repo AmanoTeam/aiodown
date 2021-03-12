@@ -111,12 +111,15 @@ class Download:
                             await file.close()
                     await client.aclose()
             except KeyError:
+                log.info(f"{self._name} connection failed!")
                 self._status = "retrying"
+                log.info(f"{self._name} retrying!")
                 if self._attempts <= self._retries:
                     self._attempts += 1
                     await self._download()
                 else:
                     self._status = "failed"
+                    log.info(f"{self._name} reached the limit of {self._retries} attempts!")
             except Exception as excep:
                 self._status = "failed"
                 log.info(f"{self._name} failed!")
@@ -224,6 +227,12 @@ class Download:
 
     def get_status(self) -> str:
         return self._status
+    
+    def get_retries(self) -> int:
+        return self._retries
+    
+    def get_attempts(self) -> int:
+        return self._attempts
 
     def get_file_path(self) -> str:
         return self._path
