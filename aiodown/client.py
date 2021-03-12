@@ -48,7 +48,7 @@ class Client:
                 "Downloads have already started, cancel them or wait for them to finish"
             )
 
-        dl = Download(self._httpx, url, path, name, retries)
+        dl = Download(url, path, name, retries, self._httpx)
         self._downloads.append(dl)
 
         log.info("A new file was added")

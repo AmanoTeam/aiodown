@@ -39,11 +39,11 @@ log = logging.getLogger("aiodown")
 class Download:
     def __init__(
         self,
-        httpx: httpx.AsyncClient,
         url: str,
         path: str = None,
         name: str = None,
         retries: int = 3,
+        httpx: httpx.AsyncClient = None,
     ):
         if httpx is None:
             self._httpx = httpx.AsyncClient()
