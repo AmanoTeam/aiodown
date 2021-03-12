@@ -26,8 +26,6 @@ import logging
 from aiodown.types import Download
 from typing import List
 
-log = logging.getLogger("aiodown")
-
 
 class Client:
     def __init__(self):
@@ -55,8 +53,6 @@ class Client:
         dl._id = id
         self._downloads[id] = dl
 
-        log.info("A new file was added")
-
         return dl
 
     def rem(self, id: int):
@@ -77,8 +73,6 @@ class Client:
 
         self._running = True
 
-        log.info(f"{len(self._downloads)} downloads have started")
-
     async def stop(self):
         if not self.is_running():
             raise RuntimeError("There is no download in progress")
@@ -87,8 +81,6 @@ class Client:
             await _download.stop()
 
         self._running = False
-
-        log.info(f"{len(self._downloads)} downloads have stopped")
 
     async def close(self):
         try:
