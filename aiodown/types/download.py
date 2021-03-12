@@ -87,16 +87,7 @@ class Download:
                 async with httpx.AsyncClient() as client:
                     async with client.stream("GET", self._url) as response:
                         self._status = "downloading"
-                        try:
-                            self._bytes_total = int(response.headers["Content-Length"])
-                        except KeyError:
-                            self._status = "retrying"
-                            if self._attempts <= self._retries:
-                                self._attempts += 1
-                                return await self._download()
-                            else:
-                                self._status = "failed"
-                            return
+                        self._bytes_total = int(response.headers["Content-Length"])
                         self._bytes_downloaded = response.num_bytes_downloaded
 
                         async with async_files.FileIO(path, "wb") as file:
@@ -119,6 +110,13 @@ class Download:
                                     self._client.check_is_running()
                             await file.close()
                     await client.aclose()
+            except KeyError:
+                self._status = "retrying"
+                if self._attempts <= self._retries:
+                    self._attempts += 1
+                    await self._download()
+                else:
+                    self._status = "failed"
             except Exception as excep:
                 self._status = "failed"
                 log.info(f"{self._name} failed!")
