@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 from aiodown.types import Download
-from typing import List
+from typing import List, Union
 
 
 class Client:
