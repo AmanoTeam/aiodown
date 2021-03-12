@@ -38,7 +38,12 @@ log = logging.getLogger("aiodown")
 
 class Download:
     def __init__(
-        self, httpx: httpx.AsyncClient, url: str, path: str = None, name: str = None
+        self,
+        httpx: httpx.AsyncClient,
+        url: str,
+        path: str = None,
+        name: str = None,
+        retries: int = 3,
     ):
         if httpx is None:
             self._httpx = httpx.AsyncClient()
@@ -52,6 +57,8 @@ class Download:
         )
         self._start = 0
         self._status = "ready"
+        self._retries = retries
+        self._attempts = 0
         self._bytes_total = 0
         self._bytes_downloaded = 0
 
@@ -64,7 +71,7 @@ class Download:
         loop.run_until_complete(self._download())
 
     async def _download(self):
-        if self.get_status() == "started":
+        if self.get_status() in ["retrying", "started"]:
             path = self._path
             if not path:
                 path = f"./downloads/{random.randint(1000, 9999)}"
@@ -81,7 +88,16 @@ class Download:
             try:
                 async with self._httpx.stream("GET", self._url) as response:
                     self._status = "downloading"
-                    self._bytes_total = int(response.headers["Content-Length"])
+                    try:
+                        self._bytes_total = int(response.headers["Content-Length"])
+                    except KeyError:
+                        self._status = "retrying"
+                        if self._attempts <= self._retries:
+                            self._attempts += 1
+                            return await self._download()
+                        else:
+                            self._status = "failed"
+                        return
                     self._bytes_downloaded = response.num_bytes_downloaded
 
                     async with async_files.FileIO(path, "wb") as file:

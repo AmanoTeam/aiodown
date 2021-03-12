@@ -42,13 +42,13 @@ class Client:
     async def __aexit__(self, *args):
         return self
 
-    def download(self, url: str, path: str = None, name: str = None) -> Download:
+    def download(self, url: str, path: str = None, name: str = None, retries: int = 3) -> Download:
         if self.is_running():
             raise RuntimeError(
                 "Downloads have already started, cancel them or wait for them to finish"
             )
 
-        dl = Download(self._httpx, url, path, name)
+        dl = Download(self._httpx, url, path, name, retries)
         self._downloads.append(dl)
 
         log.info("A new file was added")

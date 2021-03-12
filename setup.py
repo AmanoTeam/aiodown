@@ -30,7 +30,7 @@ setup(
         "Programming Language :: Python :: Implementation",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
-        "Topic :: Internet"
+        "Topic :: Internet",
     ],
     description="A fully async file downloader",
     download_url="https://github.com/AmanoTeam/aiodown/releases/latest",
