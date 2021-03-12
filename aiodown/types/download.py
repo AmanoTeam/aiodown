@@ -33,7 +33,7 @@ import sys
 
 from typing import Callable, Union
 
-log = logging.getLogger("aiodown")
+log = logging.getLogger("aiodown.download")
 
 
 class Download:
