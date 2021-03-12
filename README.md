@@ -11,6 +11,9 @@
 
 **NOTE:** If `python3` is "not a recognized command" try using `python` instead.<br>
 <br>
+`python3 -m pip install aiodown`<br>
+
+For the latest development version:<br>
 `python3 -m pip install git+https://github.com/AmanoTeam/aiodown`<br>
 
 ## What's left to do?
