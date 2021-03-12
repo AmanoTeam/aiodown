@@ -32,7 +32,7 @@ log = logging.getLogger("aiodown")
 class Client:
     def __init__(self):
         self._httpx = None
-        self._downloads = []
+        self._downloads = {}
         self._running = False
 
     async def __aenter__(self):
@@ -50,8 +50,10 @@ class Client:
                 "Downloads have already started, cancel them or wait for them to finish"
             )
 
+        id = len(self._downloads.keys())
         dl = Download(url, path, name, retries, self._httpx)
-        self._downloads.append(dl)
+        dl._id = id
+        self._downloads[id] = dl
 
         log.info("A new file was added")
 
@@ -61,7 +63,7 @@ class Client:
         if self.is_running():
             raise RuntimeError("Downloads have already started")
 
-        for _download in self._downloads:
+        for _download in self._downloads.values():
             await _download.start()
 
         self._running = True
@@ -72,9 +74,8 @@ class Client:
         if not self.is_running():
             raise RuntimeError("There is no download in progress")
 
-        for index, _download in enumerate(self._downloads):
+        for _download in self._downloads.values():
             await _download.stop()
-            del self._downloads[index]
 
         self._running = False
 

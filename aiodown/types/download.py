@@ -50,6 +50,7 @@ class Download:
         else:
             self._httpx = httpx
 
+        self._id = random.randint(1, 9999)
         self._url = url
         self._path = path
         self._name = (
@@ -212,6 +213,9 @@ class Download:
             progress = 0
         return progress
 
+    def get_id(self) -> int:
+        return self._id
+
     def get_url(self) -> str:
         return self._url
 
@@ -282,7 +286,7 @@ class Download:
         return self.get_status() in ["failed", "finished", "ready", "stopped"]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(url={self.self.get_url()}, path={self.get_file_path()}, name={self.self.get_file_name()}, status={self.get_status()})"
+        return f"{self.__class__.__name__}(id={self.get_id()}, url={self.self.get_url()}, path={self.get_file_path()}, name={self.self.get_file_name()}, status={self.get_status()})"
 
     def __str__(self) -> Callable:
         return self.__repr__()
