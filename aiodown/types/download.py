@@ -105,24 +105,26 @@ class Download:
 
                             if not self.get_status() == "stopped":
                                 self._status = "finished"
-                                log.info(f"{self._name} finished!")
+                                log.info(f"{self.get_file_name()} finished!")
                                 if not self._client is None:
                                     self._client.check_is_running()
                             await file.close()
                     await client.aclose()
             except KeyError:
-                log.info(f"{self._name} connection failed!")
+                log.info(f"{self.get_file_name()} connection failed!")
                 self._status = "retrying"
-                log.info(f"{self._name} retrying!")
-                if self._attempts <= self._retries:
+                log.info(f"{self.get_file_name()} retrying!")
+                if self.get_attempts() <= self.get_retries():
                     self._attempts += 1
                     await self._download()
                 else:
                     self._status = "failed"
-                    log.info(f"{self._name} reached the limit of {self._retries} attempts!")
+                    log.info(
+                        f"{self.get_file_name()} reached the limit of {self.get_retries()} attempts!"
+                    )
             except Exception as excep:
                 self._status = "failed"
-                log.info(f"{self._name} failed!")
+                log.info(f"{self.get_file_name()} failed!")
                 if not self._client is None:
                     self._client.check_is_running()
                 raise excep.__class__(excep)
@@ -135,7 +137,7 @@ class Download:
 
         self._status = "started"
 
-        log.info(f"{self._name} started!")
+        log.info(f"{self.get_file_name()} started!")
 
         self._start = datetime.datetime.now()
         self._thread.start()
@@ -150,7 +152,7 @@ class Download:
         if not self._client is None:
             self._client.check_is_running()
 
-        log.info(f"{self._name} stopped!")
+        log.info(f"{self.get_file_name()} stopped!")
 
         sys.exit(0)
 
@@ -162,7 +164,7 @@ class Download:
 
         self._status = "paused"
 
-        log.info(f"{self._name} paused!")
+        log.info(f"{self.get_file_name()} paused!")
 
     async def resume(self):
         if self.is_finished():
@@ -172,7 +174,7 @@ class Download:
 
         self._status = "downloading"
 
-        log.info(f"{self._name} resumed!")
+        log.info(f"{self.get_file_name()} resumed!")
 
     def get_size_total(
         self, human: bool = False, binary: bool = False, gnu: bool = False
@@ -214,7 +216,9 @@ class Download:
 
     def get_progress(self) -> float:
         try:
-            progress = float(f"{self._bytes_downloaded / self._bytes_total * 100:.1f}")
+            progress = float(
+                f"{self.get_size_downloaded() / self.get_size_total() * 100:.1f}"
+            )
         except ZeroDivisionError:
             progress = 0
         return progress
@@ -227,10 +231,10 @@ class Download:
 
     def get_status(self) -> str:
         return self._status
-    
+
     def get_retries(self) -> int:
         return self._retries
-    
+
     def get_attempts(self) -> int:
         return self._attempts
 
@@ -258,7 +262,7 @@ class Download:
     def get_speed(
         self, human: bool = False, binary: bool = False, gnu: bool = False
     ) -> Union[int, str]:
-        speed = self._bytes_downloaded / (
+        speed = self.get_size_downloaded() / (
             (datetime.datetime.now() - self._start).seconds + 1
         )
 
@@ -279,7 +283,8 @@ class Download:
     def get_eta(self, human: bool = False, precise: bool = False) -> Union[int, str]:
         try:
             time = datetime.timedelta(
-                seconds=(self._bytes_total - self._bytes_downloaded) / self.get_speed()
+                seconds=(self.get_size_total() - self.get_size_downloaded())
+                / self.get_speed()
             )
         except ZeroDivisionError:
             time = datetime.timedelta(seconds=0)
