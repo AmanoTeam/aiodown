@@ -59,6 +59,15 @@ class Client:
 
         return dl
 
+    def rem(self, id: int):
+        if id in self._downloads.keys():
+            if self._downloads[id].is_finished():
+                del self._downloads[id]
+            else:
+                raise RuntimeError("The download is in progress, cancel it first")
+        else:
+            raise KeyError(f"There is no download with id '{id}'")
+
     async def start(self):
         if self.is_running():
             raise RuntimeError("Downloads have already started")
