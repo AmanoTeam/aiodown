@@ -244,10 +244,25 @@ class Download:
     def get_file_name(self) -> str:
         return self._name
 
+    def get_start_time(
+        self, human: bool = False, precise: bool = False
+    ) -> Union[int, str]:
+        time = self._start
+
+        if precise and not human:
+            raise TypeError("To get accurate time, activate human mode")
+
+        if human:
+            if precise:
+                return humanize.precisedelta(time)
+            else:
+                return humanize.naturaltime(time)
+        return time
+
     def get_elapsed_time(
         self, human: bool = False, precise: bool = False
     ) -> Union[int, str]:
-        time = datetime.datetime.now() - self._start
+        time = datetime.datetime.now() - self.get_start_time()
 
         if precise and not human:
             raise TypeError("To get accurate time, activate human mode")
