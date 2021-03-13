@@ -29,7 +29,6 @@ import logging
 import os
 import random
 import threading
-import sys
 
 from typing import Callable, Union
 
@@ -69,7 +68,7 @@ class Download:
         loop.run_until_complete(self._download())
 
     async def _download(self):
-        if self.get_status() in ["retrying", "started"]:
+        if self.get_status() in ["reconnecting", "started"]:
             path = self._path
             if not path:
                 path = f"./downloads/{random.randint(1000, 9999)}"
@@ -110,9 +109,9 @@ class Download:
                                     self._client.check_is_running()
                             await file.close()
                     await client.aclose()
-            except KeyError:
+            except (httpx.RemoteProtocolError, KeyError):
                 log.info(f"{self.get_file_name()} connection failed!")
-                self._status = "retrying"
+                self._status = "reconnecting"
                 log.info(f"{self.get_file_name()} retrying!")
                 if self.get_attempts() <= self.get_retries():
                     self._attempts += 1
@@ -153,8 +152,6 @@ class Download:
             self._client.check_is_running()
 
         log.info(f"{self.get_file_name()} stopped!")
-
-        sys.exit(0)
 
     async def pause(self):
         if self.is_finished():
