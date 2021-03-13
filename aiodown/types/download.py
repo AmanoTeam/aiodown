@@ -41,7 +41,6 @@ class Download:
         self,
         url: str,
         path: str = None,
-        name: str = None,
         retries: int = 3,
         client: "aiodown.Client" = None,
     ):
@@ -51,7 +50,9 @@ class Download:
         self._url = url
         self._path = path
         self._name = (
-            name if name else os.path.basename(path) if path else os.path.basename(url)
+            os.path.basename(path)
+            if (path and ("." in path.split("/")[-1]))
+            else os.path.basename(url)
         )
         self._start = 0
         self._status = "ready"
@@ -70,16 +71,13 @@ class Download:
 
     async def _download(self):
         if self.get_status() in ["reconnecting", "started"]:
-            path = self._path
-            if not path:
-                path = f"./downloads/{random.randint(1000, 9999)}"
+            if not self._path:
+                self._path = f"./downloads/{random.randint(1000, 9999)}"
 
-            if not os.path.exists(path):
-                os.makedirs(path)
+            if not os.path.exists(self._path):
+                os.makedirs(self._path)
 
-            self._path = path
-
-            path = os.path.join(path, self._name)
+            path = os.path.join(self._path, self._name)
             if os.path.exists(path):
                 raise FileExistsError(f"[Errno 17] File exists: '{path}'")
 
