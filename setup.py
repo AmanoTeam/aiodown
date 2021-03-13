@@ -36,5 +36,10 @@ setup(
     download_url="https://github.com/AmanoTeam/aiodown/releases/latest",
     long_description=readme,
     long_description_content_type="text/markdown",
-    keywords="python downloader async asyncio httpx",
+    keywords="python, downloader, async, asyncio, httpx, file",
+    project_urls={
+        "Bug report": "https://github.com/AmanoTeam/aiodown/issues",
+        "Donate": "https://liberapay.com/AmanoTeam",
+        "Source": "https://github.com/AmanoTeam/aiodown",
+    },
 )

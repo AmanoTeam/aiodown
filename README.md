@@ -1,6 +1,8 @@
 # aiodown
 
-> An `asyncio-based` file downloader made in `Python 3` using [httpx](//github.com/encode/httpx).
+![License](//img.shields.io/github/license/AmanoTeam/aiodown) ![Codacy](//app.codacy.com/project/badge/Grade/9333a571fcf442c78ac2fc9802d3ded3)
+
+An `asyncio-based` file downloader made in `Python 3` using [httpx](//github.com/encode/httpx).
 
 ## Requirements
 
@@ -10,7 +12,9 @@
 
 ## Installation
 
-**NOTE:** If `python3` is "not a recognized command" try using `python` instead.<br>
+**NOTE:** If `python3` is "not a recognized command" try using `python` instead.
+
+For the latest stable version:<br>
 ```
 python3 -m pip install aiodown
 ```

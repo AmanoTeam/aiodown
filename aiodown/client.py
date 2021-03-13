@@ -42,7 +42,7 @@ class Client:
             )
 
         id = len(self._downloads.keys())
-        dl = Download(url, path, name, retries, self)
+        dl = Download(url, path, retries, self)
         dl._id = id
         self._downloads[id] = dl
 
