@@ -1,8 +1,11 @@
 # aiodown
 
-![License](//img.shields.io/github/license/AmanoTeam/aiodown) ![Codacy](//app.codacy.com/project/badge/Grade/9333a571fcf442c78ac2fc9802d3ded3)
+![License](https://img.shields.io/github/license/AmanoTeam/aiodown)
+![Codacy](https://app.codacy.com/project/badge/Grade/9333a571fcf442c78ac2fc9802d3ded3)
+![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)
+![Contributors](https://img.shields.io/github/contributors/AmanoTeam/aiodown.svg)
 
-An `asyncio-based` file downloader made in `Python 3` using [httpx](//github.com/encode/httpx).
+> An `asyncio-based` file downloader made in `Python 3` using [httpx](//github.com/encode/httpx).
 
 ## Requirements
 
