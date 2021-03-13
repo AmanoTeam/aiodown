@@ -20,11 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__author__ = "AmanoTeam"
-__email__ = "contact@amanoteam.com"
-__license__ = "MIT"
-__version__ = "1.0.2"
 
-from . import types, errors
-
-from .client import Client
+class FinishedError(Exception):
+    def __init__(self):
+        super().__init__("The download has already been completed")

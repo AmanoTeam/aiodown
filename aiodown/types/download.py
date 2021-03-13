@@ -30,6 +30,7 @@ import os
 import random
 import threading
 
+from aiodown.errors import FinishedError, PausedError, ProgressError
 from typing import Callable, Union
 
 log = logging.getLogger("aiodown.download")
@@ -132,7 +133,7 @@ class Download:
         if self.get_status() == "started":
             raise RuntimeError("Download is already started")
         if not self.is_finished():
-            raise RuntimeError("Download is already in progress")
+            raise ProgressError()
 
         self._status = "started"
 
@@ -143,7 +144,7 @@ class Download:
 
     async def stop(self):
         if self.is_finished():
-            raise RuntimeError("Download is already finished")
+            raise FinishedError()
         if self.get_status() == "stopped":
             raise RuntimeError("Download is already stopped")
 
@@ -155,9 +156,9 @@ class Download:
 
     async def pause(self):
         if self.is_finished():
-            raise RuntimeError("Download is already finished")
+            raise FinishedError()
         if self.get_status() == "paused":
-            raise RuntimeError("Download is already paused")
+            raise PausedError()
 
         self._status = "paused"
 
@@ -165,9 +166,9 @@ class Download:
 
     async def resume(self):
         if self.is_finished():
-            raise RuntimeError("Download is already finished")
+            raise FinishedError()
         if not self.get_status() == "paused":
-            raise RuntimeError("Download is already in progress")
+            raise ProgressError()
 
         self._status = "downloading"
 

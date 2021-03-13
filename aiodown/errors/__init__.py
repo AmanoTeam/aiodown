@@ -20,11 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__author__ = "AmanoTeam"
-__email__ = "contact@amanoteam.com"
-__license__ = "MIT"
-__version__ = "1.0.2"
+from .finished import FinishedError
+from .paused import PausedError
+from .progress import ProgressError
 
-from . import types, errors
-
-from .client import Client
+__all__ = ["FinishedError", "PausedError", "ProgressError"]
