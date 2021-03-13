@@ -28,7 +28,6 @@ import humanize
 import logging
 import os
 import random
-import threading
 
 from aiodown.errors import FinishedError, PausedError, ProgressError
 from typing import Callable, Union
@@ -61,15 +60,7 @@ class Download:
         self._bytes_total = 0
         self._bytes_downloaded = 0
 
-        self._thread = threading.Thread(target=self._start_download)
-        self._thread.daemon = True
-
-    def _start_download(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self._download())
-
-    async def _download(self):
+    async def _file_download(self):
         if self.get_status() in ["reconnecting", "started"]:
             if not self._path:
                 self._path = f"./downloads/{random.randint(1000, 9999)}"
@@ -134,11 +125,10 @@ class Download:
             raise ProgressError()
 
         self._status = "started"
+        self._start = datetime.datetime.now()
+        await self._file_download()
 
         log.info(f"{self.get_file_name()} started!")
-
-        self._start = datetime.datetime.now()
-        self._thread.start()
 
     async def stop(self):
         if self.is_finished():
