@@ -23,4 +23,5 @@
 
 class FinishedError(Exception):
     def __init__(self):
+        """Raised when trying to do something with a download already completed"""
         super().__init__("The download has already been completed")

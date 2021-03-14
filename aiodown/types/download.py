@@ -34,7 +34,7 @@ import random
 from aiodown.errors import FinishedError, PausedError, ProgressError
 from typing import Callable, Union
 
-log = logging.getLogger("aiodown.download")
+log = logging.getLogger(__name__)
 
 
 class Download:
@@ -68,6 +68,12 @@ class Download:
         self._task = asyncio.ensure_future(self._request())
 
     async def _request(self):
+        """This is where the magic happens, everything is downloaded here.
+
+        Raises:
+            FileExistsError: In case the download location already exists.
+        """
+
         if self.get_status() in ["reconnecting", "started"]:
             if not self._path:
                 self._path = f"./downloads/{random.randint(1000, 9999)}"
@@ -133,13 +139,20 @@ class Download:
                     log.info(
                         f"{self.get_file_name()} reached the limit of {self.get_retries()} attempts!"
                     )
-            except Exception as excep:
+            except:
                 self._status = "failed"
                 log.info(f"{self.get_file_name()} failed!")
                 if not self._client is None:
                     self._client.check_is_running()
 
     async def start(self):
+        """Starts the download if it has not already been.
+
+        Raises:
+            RuntimeError: If the download has already started.
+            :obj:`aiodown.errors.ProgressError`: If the download is in progress.
+        """
+
         if self.get_status() == "started":
             raise RuntimeError("Download is already started")
         if not self.is_finished():
@@ -154,6 +167,13 @@ class Download:
         log.info(f"{self.get_file_name()} started!")
 
     async def stop(self):
+        """Stop download if started.
+
+        Raises:
+            :obj:`aiodown.errors.FinishedError`: In case the download has already been completed.
+            RuntimeError: If the download has already stopped.
+        """
+
         if self.is_finished():
             raise FinishedError()
         if self.get_status() == "stopped":
@@ -168,6 +188,13 @@ class Download:
         log.info(f"{self.get_file_name()} stopped!")
 
     async def pause(self):
+        """Pauses the download if it is in progress.
+
+        Raises:
+            :obj:`aiodown.errors.FinishedError`: In case the download has already been completed.
+            :obj:`aiodown.errors.PausedError`: In case the download is already paused.
+        """
+
         if self.is_finished():
             raise FinishedError()
         if self.get_status() == "paused":
@@ -178,6 +205,13 @@ class Download:
         log.info(f"{self.get_file_name()} paused!")
 
     async def resume(self):
+        """Resume download if paused.
+
+        Raises:
+            :obj:`aiodown.errors.FinishedError`: In case the download has already been completed.
+            :obj:`aiodown.errors.ProgressError`: In case download is not paused.
+        """
+
         if self.is_finished():
             raise FinishedError()
         if not self.get_status() == "paused":
@@ -190,6 +224,32 @@ class Download:
     def get_size_total(
         self, human: bool = False, binary: bool = False, gnu: bool = False
     ) -> Union[int, str]:
+        """Get the total number of bytes.
+
+        Parameters:
+            human (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding,
+                if False, it will return only the bytes in numbers.
+
+            binary (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding in binary mode,
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+            gnu (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding in gnu mode,
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+        Raises:
+            TypeError: In case of using binary or gnu mode without human mode.
+            TypeError: If you try to use binary and gnu mode at the same time.
+
+        Returns:
+            ``int``: If human mode is disabled.
+            ``str``: If human mode is enabled.
+        """
+
         size = self._bytes_total
 
         if (binary or gnu) and not human:
@@ -209,6 +269,32 @@ class Download:
     def get_size_downloaded(
         self, human: bool = False, binary: bool = False, gnu: bool = False
     ) -> Union[int, str]:
+        """Get the downloaded number of bytes.
+
+        Parameters:
+            human (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding,
+                if False, it will return only the bytes in numbers.
+
+            binary (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding in binary mode,
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+            gnu (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding in gnu mode,
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+        Raises:
+            TypeError: In case of using binary or gnu mode without human mode.
+            TypeError: If you try to use binary and gnu mode at the same time.
+
+        Returns:
+            ``int``: If human mode is disabled.
+            ``str``: If human mode is enabled.
+        """
+
         size = self._bytes_downloaded
 
         if (binary or gnu) and not human:
@@ -226,6 +312,12 @@ class Download:
         return size
 
     def get_progress(self) -> float:
+        """Get the current progress.
+
+        Returns:
+            ``float``: The current progress of the download.
+        """
+
         try:
             progress = float(
                 f"{self.get_size_downloaded() / self.get_size_total() * 100:.1f}"
@@ -235,24 +327,66 @@ class Download:
         return progress
 
     def get_id(self) -> int:
+        """Get the download id.
+
+        Returns:
+            ``int``: The download id.
+        """
+
         return self._id
 
     def get_url(self) -> str:
+        """Get the download URL.
+
+        Returns:
+            ``str``: The download URL.
+        """
+
         return self._url
 
     def get_status(self) -> str:
+        """Get the download status.
+
+        Returns:
+            ``str``: The download status.
+        """
+
         return self._status
 
     def get_retries(self) -> int:
+        """Get the download retries.
+
+        Returns:
+            ``int``: The download retries.
+        """
+
         return self._retries
 
     def get_attempts(self) -> int:
+        """Get the download attempts.
+
+        Returns:
+            ``int``: The download attempts.
+        """
+
         return self._attempts
 
     def get_file_path(self) -> str:
+        """Get the download location.
+
+        Returns:
+            ``str``: The download location.
+        """
+
         return self._path
 
     def get_file_name(self) -> str:
+        """Get the download file name.
+
+        Returns:
+            ``str``: The download file name.
+        """
+
         return self._name
 
     def get_start_time(
@@ -273,6 +407,26 @@ class Download:
     def get_elapsed_time(
         self, human: bool = False, precise: bool = False
     ) -> Union[int, str]:
+        """Get the elapsed time bytes.
+
+        Parameters:
+            human (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding,
+                if False, it will return only the bytes in numbers.
+
+            precise (``bool``, *optional*):
+                If True, it will return you want the precise time.
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+        Raises:
+            TypeError: In case of using precise mode without human mode.
+
+        Returns:
+            ``int``: If human mode is disabled.
+            ``str``: If human mode is enabled.
+        """
+
         time = datetime.datetime.now() - self.get_start_time()
 
         if precise and not human:
@@ -288,6 +442,32 @@ class Download:
     def get_speed(
         self, human: bool = False, binary: bool = False, gnu: bool = False
     ) -> Union[int, str]:
+        """Get the download speed bytes.
+
+        Parameters:
+            human (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding,
+                if False, it will return only the bytes in numbers.
+
+            binary (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding in binary mode,
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+            gnu (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding in gnu mode,
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+        Raises:
+            TypeError: In case of using binary or gnu mode without human mode.
+            TypeError: If you try to use binary and gnu mode at the same time.
+
+        Returns:
+            ``int``: If human mode is disabled.
+            ``str``: If human mode is enabled.
+        """
+
         speed = self.get_size_downloaded() / (
             (datetime.datetime.now() - self._start).seconds + 1
         )
@@ -307,6 +487,26 @@ class Download:
         return speed
 
     def get_eta(self, human: bool = False, precise: bool = False) -> Union[int, str]:
+        """Get the eta time bytes.
+
+        Parameters:
+            human (``bool``, *optional*):
+                If True, it will return the bytes in a format for human understanding,
+                if False, it will return only the bytes in numbers.
+
+            precise (``bool``, *optional*):
+                If True, it will return you want the precise time.
+                if False, it will return only in human understanding format.
+                ``human`` required.
+
+        Raises:
+            TypeError: In case of using precise mode without human mode.
+
+        Returns:
+            ``int``: If human mode is disabled.
+            ``str``: If human mode is enabled.
+        """
+
         try:
             time = datetime.timedelta(
                 seconds=(self.get_size_total() - self.get_size_downloaded())
@@ -326,16 +526,43 @@ class Download:
         return time
 
     def is_finished(self) -> bool:
+        """Checks whether the download has been completed.
+
+        Returns:
+            ``bool``: True if the download has been finished.
+        """
+
         return self.get_status() in ["failed", "finished", "ready", "stopped"]
 
     def is_success(self) -> bool:
+        """Checks whether the download was successful.
+
+        Raises:
+            :obj:`aiodown.erros.ProgressError`: If the download has not yet finished.
+
+        Returns:
+            ``bool``: True if the download was a success.
+        """
+
         if not self.is_finished():
             raise ProgressError()
 
         return self.get_status == "finished"
 
     def __repr__(self) -> str:
+        """Get some download details.
+
+        Returns:
+            ``str``: Some download details.
+        """
+
         return f"{self.__class__.__name__}(id={self.get_id()}, url={self.self.get_url()}, path={self.get_file_path()}, name={self.self.get_file_name()}, status={self.get_status()})"
 
     def __str__(self) -> Callable:
+        """Get some download details.
+
+        Returns:
+            ``str``: Some download details.
+        """
+
         return self.__repr__()

@@ -23,4 +23,5 @@
 
 class PausedError(Exception):
     def __init__(self):
+        """Raised when trying to pause an already paused download"""
         super().__init__("Download is already paused")

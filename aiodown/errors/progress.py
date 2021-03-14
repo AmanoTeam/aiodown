@@ -23,4 +23,5 @@
 
 class ProgressError(Exception):
     def __init__(self):
+        """Raised when trying to do something with a download in progress"""
         super().__init__("Download is in progress")
