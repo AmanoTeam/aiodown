@@ -22,7 +22,9 @@
 
 import asyncio
 import async_files
+import concurrent.futures
 import datetime
+import httpcore
 import httpx
 import humanize
 import logging
@@ -42,8 +44,10 @@ class Download:
         path: str = None,
         retries: int = 3,
         client: "aiodown.Client" = None,
+        workers: int = 8,
     ):
         self._client = client
+        self._workers = workers
 
         self._id = random.randint(1, 9999)
         self._url = url
@@ -60,7 +64,10 @@ class Download:
         self._bytes_total = 0
         self._bytes_downloaded = 0
 
-    async def _file_download(self):
+        self._loop = asyncio.get_event_loop()
+        self._task = asyncio.ensure_future(self._request())
+
+    async def _request(self):
         if self.get_status() in ["reconnecting", "started"]:
             if not self._path:
                 self._path = f"./downloads/{random.randint(1000, 9999)}"
@@ -69,15 +76,15 @@ class Download:
                 os.makedirs(self._path)
 
             path = os.path.join(self._path, self._name)
-            if os.path.exists(path):
-                raise FileExistsError(f"[Errno 17] File exists: '{path}'")
+            if not self.get_status() == "reconnecting":
+                if os.path.exists(path):
+                    raise FileExistsError(f"[Errno 17] File exists: '{path}'")
+                self._status = "downloading"
 
             try:
                 async with httpx.AsyncClient() as client:
                     async with client.stream("GET", self._url) as response:
-                        self._status = "downloading"
                         self._bytes_total = int(response.headers["Content-Length"])
-                        self._bytes_downloaded = response.num_bytes_downloaded
 
                         async with async_files.FileIO(path, "wb") as file:
                             async for chunk in response.aiter_bytes():
@@ -88,9 +95,17 @@ class Download:
                                         await asyncio.sleep(0.1)
                                         continue
 
-                                await file.write(chunk)
+                                bytes_downloaded = response.num_bytes_downloaded
+                                if self.get_status() == "reconnecting":
+                                    if bytes_downloaded < self.get_size_downloaded():
+                                        continue
+                                    else:
+                                        self._attempts = 0
+                                        self._status = "downloading"
 
-                                self._bytes_downloaded = response.num_bytes_downloaded
+                                if bytes_downloaded > 0:
+                                    await file.write(chunk)
+                                    self._bytes_downloaded = bytes_downloaded
 
                             if not self.get_status() == "stopped":
                                 self._status = "finished"
@@ -99,13 +114,20 @@ class Download:
                                     self._client.check_is_running()
                             await file.close()
                     await client.aclose()
-            except (httpx.RemoteProtocolError, KeyError):
+            except (
+                httpx.CloseError,
+                httpcore.ConnectError,
+                httpx.ConnectError,
+                httpx.RemoteProtocolError,
+                KeyError,
+            ):
                 log.info(f"{self.get_file_name()} connection failed!")
                 self._status = "reconnecting"
                 log.info(f"{self.get_file_name()} retrying!")
-                if self.get_attempts() <= self.get_retries():
+                if self.get_attempts() < self.get_retries():
+                    await asyncio.sleep(3)
                     self._attempts += 1
-                    await self._download()
+                    await self._request()
                 else:
                     self._status = "failed"
                     log.info(
@@ -116,7 +138,6 @@ class Download:
                 log.info(f"{self.get_file_name()} failed!")
                 if not self._client is None:
                     self._client.check_is_running()
-                raise excep.__class__(excep)
 
     async def start(self):
         if self.get_status() == "started":
@@ -126,7 +147,9 @@ class Download:
 
         self._status = "started"
         self._start = datetime.datetime.now()
-        await self._file_download()
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=self._workers)
+        future = self._loop.run_in_executor(pool, self._task, self.get_id())
+        await asyncio.gather(future, return_exceptions=True)
 
         log.info(f"{self.get_file_name()} started!")
 
@@ -137,6 +160,8 @@ class Download:
             raise RuntimeError("Download is already stopped")
 
         self._status = "stopped"
+        if not self._task.cancelled():
+            self._task.cancel()
         if not self._client is None:
             self._client.check_is_running()
 
@@ -302,6 +327,12 @@ class Download:
 
     def is_finished(self) -> bool:
         return self.get_status() in ["failed", "finished", "ready", "stopped"]
+
+    def is_success(self) -> bool:
+        if not self.is_finished():
+            raise ProgressError()
+
+        return self.get_status == "finished"
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(id={self.get_id()}, url={self.self.get_url()}, path={self.get_file_path()}, name={self.self.get_file_name()}, status={self.get_status()})"

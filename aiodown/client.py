@@ -25,9 +25,10 @@ from typing import List, Union
 
 
 class Client:
-    def __init__(self):
-        self._downloads = {}
+    def __init__(self, workers: int = 8):
+        self._workers = workers
         self._running = False
+        self._downloads = {}
 
     async def __aenter__(self):
         return self
@@ -35,14 +36,16 @@ class Client:
     async def __aexit__(self, *args):
         return None
 
-    def add(self, url: str, path: str = None, retries: int = 3) -> Download:
+    def add(
+        self, url: str, path: str = None, retries: int = 3, workers: int = None
+    ) -> Download:
         if self.is_running():
             raise RuntimeError(
                 "There are some downloads in progress, cancel them first or wait for them to finish"
             )
 
         id = len(self._downloads.keys())
-        dl = Download(url, path, retries, self)
+        dl = Download(url, path, retries, self, workers if workers else self._workers)
         dl._id = id
         self._downloads[id] = dl
 
