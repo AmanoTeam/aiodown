@@ -2,9 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 1.0.3 (March 14th, 2021)
+## 1.0.4 (Narch 14th, 2021)
+
+### Added
+
+* Assert that the status code is 200.
+
+### Changed
+
+* Improve code based on Codacy.
+* The downloads are runned in a executor instead of threads.
+
+## 1.0.3 (March 13th, 2021)
 
 ### Added
 
