@@ -90,6 +90,8 @@ class Download:
             try:
                 async with httpx.AsyncClient() as client:
                     async with client.stream("GET", self._url) as response:
+                        assert response.status_code == 200
+
                         self._bytes_total = int(response.headers["Content-Length"])
 
                         async with async_files.FileIO(path, "wb") as file:
@@ -121,6 +123,7 @@ class Download:
                             await file.close()
                     await client.aclose()
             except (
+                AssertionError,
                 httpx.CloseError,
                 httpcore.ConnectError,
                 httpx.ConnectError,
