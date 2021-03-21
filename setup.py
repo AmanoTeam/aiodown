@@ -19,7 +19,11 @@ setup(
     name="aiodown",
     version=__version__,
     packages=find_packages(),
-    install_requires=["async-files>=0.4", "httpx[http2]>=0.14", "humanize>=3.2.0"],
+    install_requires=[
+        "async-files >= 0.4",
+        "httpx[http2] >= 0.14",
+        "humanize >= 3.2.0",
+    ],
     url="https://github.com/AmanoTeam/aiodown",
     python_requires=">=3.8",
     author=__author__,
