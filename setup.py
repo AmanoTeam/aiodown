@@ -1,9 +1,3 @@
-from aiodown import (
-    __author__,
-    __email__,
-    __license__,
-    __version__,
-)
 from setuptools import find_packages, setup
 
 with open("README.md", "r") as file:
@@ -17,7 +11,7 @@ with open("CHANGELOG.md", "r") as file:
 
 setup(
     name="aiodown",
-    version=__version__,
+    version="1.0.4",
     packages=find_packages(),
     install_requires=[
         "async-files >= 0.4",
@@ -26,9 +20,9 @@ setup(
     ],
     url="https://github.com/AmanoTeam/aiodown",
     python_requires=">=3.8",
-    author=__author__,
-    author_email=__email__,
-    license=__license__,
+    author="AmanoTeam",
+    author_email="contact@amanoteam.com",
+    license="MIT",
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
