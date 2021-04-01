@@ -51,12 +51,8 @@ class Download:
 
         self._id = random.randint(1, 9999)
         self._url = url
-        self._path = path
-        self._name = (
-            os.path.basename(path)
-            if (path and ("." in path.split("/")[-1]))
-            else os.path.basename(url)
-        )
+        self._path = os.path.dirname(path) if path else None
+        self._name = os.path.basename(path) if path else os.path.basename(url)
         self._start = 0
         self._status = "ready"
         self._retries = retries
