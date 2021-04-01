@@ -11,7 +11,7 @@ with open("CHANGELOG.md", "r") as file:
 
 setup(
     name="aiodown",
-    version="1.0.4",
+    version="1.0.5",
     packages=find_packages(),
     install_requires=[
         "async-files >= 0.4",
