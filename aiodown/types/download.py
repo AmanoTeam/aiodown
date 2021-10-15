@@ -21,18 +21,20 @@
 # SOFTWARE.
 
 import asyncio
-import async_files
 import concurrent.futures
 import datetime
-import httpcore
-import httpx
-import humanize
 import logging
 import os
 import random
-
-from aiodown.errors import FinishedError, PausedError, ProgressError
 from typing import Callable, Union
+
+import async_files
+import httpcore
+import httpx
+import humanize
+
+import aiodown
+from aiodown.errors import FinishedError, PausedError, ProgressError
 
 log = logging.getLogger(__name__)
 
@@ -84,7 +86,9 @@ class Download:
                 self._status = "downloading"
 
             try:
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(
+                    http2=True, follow_redirects=True
+                ) as client:
                     async with client.stream("GET", self._url) as response:
                         assert response.status_code == 200
 
@@ -114,7 +118,7 @@ class Download:
                             if not self.get_status() == "stopped":
                                 self._status = "finished"
                                 log.info(f"{self.get_file_name()} finished!")
-                                if not self._client is None:
+                                if self._client is not None:
                                     self._client.check_is_running()
                             await file.close()
                     await client.aclose()
@@ -138,10 +142,10 @@ class Download:
                     log.info(
                         f"{self.get_file_name()} reached the limit of {self.get_retries()} attempts!"
                     )
-            except:
+            except BaseException:
                 self._status = "failed"
                 log.info(f"{self.get_file_name()} failed!")
-                if not self._client is None:
+                if self._client is not None:
                     self._client.check_is_running()
 
     async def start(self):
@@ -181,7 +185,7 @@ class Download:
         self._status = "stopped"
         if not self._task.cancelled():
             self._task.cancel()
-        if not self._client is None:
+        if self._client is not None:
             self._client.check_is_running()
 
         log.info(f"{self.get_file_name()} stopped!")
@@ -213,7 +217,7 @@ class Download:
 
         if self.is_finished():
             raise FinishedError()
-        if not self.get_status() == "paused":
+        if self.get_status() != "paused":
             raise ProgressError()
 
         self._status = "downloading"
@@ -251,19 +255,7 @@ class Download:
 
         size = self._bytes_total
 
-        if (binary or gnu) and not human:
-            raise TypeError(
-                "For 'binary' or 'gnu' type you need to activate human size"
-            )
-
-        if binary and gnu:
-            raise TypeError(
-                "You can only choose one type, 'binary' or 'gnu' and not both at the same time"
-            )
-
-        if human:
-            return humanize.naturalsize(size, binary=binary, gnu=gnu)
-        return size
+        return self._human_binary(binary, gnu, human, size)
 
     def get_size_downloaded(
         self, human: bool = False, binary: bool = False, gnu: bool = False
@@ -296,19 +288,7 @@ class Download:
 
         size = self._bytes_downloaded
 
-        if (binary or gnu) and not human:
-            raise TypeError(
-                "For 'binary' or 'gnu' type you need to activate human size"
-            )
-
-        if binary and gnu:
-            raise TypeError(
-                "You can only choose one type, 'binary' or 'gnu' and not both at the same time"
-            )
-
-        if human:
-            return humanize.naturalsize(size, binary=binary, gnu=gnu)
-        return size
+        return self._human_binary(binary, gnu, human, size)
 
     def get_progress(self) -> float:
         """Get the current progress.
@@ -393,15 +373,7 @@ class Download:
     ) -> Union[int, str]:
         time = self._start
 
-        if precise and not human:
-            raise TypeError("To get accurate time, activate human mode")
-
-        if human:
-            if precise:
-                return humanize.precisedelta(time)
-            else:
-                return humanize.naturaltime(time)
-        return time
+        return self._human_precise(precise, human, time)
 
     def get_elapsed_time(
         self, human: bool = False, precise: bool = False
@@ -428,15 +400,7 @@ class Download:
 
         time = datetime.datetime.now() - self.get_start_time()
 
-        if precise and not human:
-            raise TypeError("To get accurate time, activate human mode")
-
-        if human:
-            if precise:
-                return humanize.precisedelta(time)
-            else:
-                return humanize.naturaltime(time)
-        return time
+        return self._human_precise(precise, human, time)
 
     def get_speed(
         self, human: bool = False, binary: bool = False, gnu: bool = False
@@ -471,19 +435,21 @@ class Download:
             (datetime.datetime.now() - self._start).seconds + 1
         )
 
+        return self._human_binary(binary, gnu, human, speed)
+
+    def _human_binary(self, binary, gnu, human, arg3):
         if (binary or gnu) and not human:
             raise TypeError(
                 "For 'binary' or 'gnu' type you need to activate human size"
             )
-
         if binary and gnu:
             raise TypeError(
                 "You can only choose one type, 'binary' or 'gnu' and not both at the same time"
             )
 
         if human:
-            return humanize.naturalsize(speed, binary=binary, gnu=gnu)
-        return speed
+            return humanize.naturalsize(arg3, binary=binary, gnu=gnu)
+        return arg3
 
     def get_eta(self, human: bool = False, precise: bool = False) -> Union[int, str]:
         """Get the eta time bytes.
@@ -514,9 +480,11 @@ class Download:
         except ZeroDivisionError:
             time = datetime.timedelta(seconds=0)
 
+        return self._human_precise(precise, human, time)
+
+    def _human_precise(self, precise, human, time):
         if precise and not human:
             raise TypeError("To get accurate time, activate human mode")
-
         if human:
             if precise:
                 return humanize.precisedelta(time)

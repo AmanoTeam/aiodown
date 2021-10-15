@@ -20,8 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from aiodown.types import Download
 from typing import List, Union
+
+from aiodown.types import Download
 
 
 class Client:
@@ -73,7 +74,7 @@ class Client:
             )
 
         dl_id = len(self._downloads.keys())
-        dl = Download(url, path, retries, self, workers if workers else self._workers)
+        dl = Download(url, path, retries, self, workers or self._workers)
         dl._id = dl_id
         self._downloads[dl_id] = dl
 
@@ -94,25 +95,24 @@ class Client:
         """
 
         if isinstance(dl_id, bool):
-            if dl_id:
-                if self.is_running():
-                    raise RuntimeError(
-                        "There are some downloads in progress, cancel them first or wait for them to finish"
-                    )
-                else:
-                    self._downloads = {}
-            else:
+            if not dl_id:
                 raise TypeError(
                     "You can only use 'client.rem(True)' or 'client.rem(id)' and not 'client.rem(False)'"
                 )
-        else:
-            if dl_id in self._downloads.keys():
-                if self._downloads[dl_id].is_finished():
-                    del self._downloads[dl_id]
-                else:
-                    raise RuntimeError("The download is in progress, cancel it first")
+            if self.is_running():
+                raise RuntimeError(
+                    "There are some downloads in progress, cancel them first or wait for them to finish"
+                )
             else:
+                self._downloads = {}
+        else:
+            if dl_id not in self._downloads.keys():
                 raise KeyError(f"There is no download with id '{dl_id}'")
+
+            if self._downloads[dl_id].is_finished():
+                del self._downloads[dl_id]
+            else:
+                raise RuntimeError("The download is in progress, cancel it first")
 
     async def start(self):
         """Starts all downloads in the list.

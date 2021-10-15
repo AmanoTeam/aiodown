@@ -11,11 +11,11 @@ with open("CHANGELOG.md", "r") as file:
 
 setup(
     name="aiodown",
-    version="1.0.5",
+    version="1.0.7",
     packages=find_packages(),
     install_requires=[
         "async-files >= 0.4",
-        "httpx[http2] >= 0.14",
+        "httpx[http2] >= 0.20",
         "humanize >= 3.2.0",
     ],
     url="https://github.com/AmanoTeam/aiodown",

@@ -11,20 +11,22 @@
 ## Requirements
 
 - Python 3.8 or higher.
-- httpx 0.14 or higher.
+- httpx 0.20 or higher.
 - async-files 0.4 or higher.
 
 ## Installation
 
 **NOTE:** If `python3` is "not a recognized command" try using `python` instead.
 
-For the latest stable version:<br>
-```
+For the latest stable version:
+
+```sh
 python3 -m pip install aiodown
 ```
 
-For the latest development version:<br>
-```
+For the latest development version:
+
+```sh
 python3 -m pip install git+https://github.com/AmanoTeam/aiodown
 ```
 

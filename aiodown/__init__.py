@@ -23,8 +23,9 @@
 __author__ = "AmanoTeam"
 __email__ = "contact@amanoteam.com"
 __license__ = "MIT"
-__version__ = "1.0.5"
+__version__ = "1.0.7"
 
-from . import types, errors
-
+from . import errors, types
 from .client import Client
+
+__all__ = ["errors", "types", "Client"]

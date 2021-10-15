@@ -1,5 +1,13 @@
-# Byte pre-compiled
+# Build
 *.egg*
 build/
 dist/
+
+# Python Cache
 __pycache__/
+
+# Virtualenv
+venv/
+
+# VSCode
+.vscode/
