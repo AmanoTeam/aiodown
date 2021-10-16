@@ -523,7 +523,7 @@ class Download:
             ``str``: Some download details.
         """
 
-        return f"{self.__class__.__name__}(id={self.get_id()}, url={self.self.get_url()}, path={self.get_file_path()}, name={self.self.get_file_name()}, status={self.get_status()})"
+        return f"{self.__class__.__name__}(id={self.get_id()}, url={self.get_url()}, path={self.get_file_path()}, name={self.get_file_name()}, status={self.get_status()})"
 
     def __str__(self) -> Callable:
         """Get some download details.
